@@ -384,6 +384,7 @@ const $ = s => document.querySelector(s);
 const main = $('#main');
 const FU_LIST = [20,25,30,40,50,60,70,80,90,100,110];
 const Q_FU = FU_LIST.filter(f => f <= MAX_FU);
+const QUICK_FU = FU_LIST.filter(f => f <= 70); // 翻符→点だけ70符まで
 const MODES = ['quick','fu','full'];
 const KEY = 'mj-drill-v1';
 let state = {mode:'quick', q:null, answered:false, tableOya:false};
@@ -443,9 +444,9 @@ function condChips(h){
 }
 
 // ----- 問題生成 -----
-function nearLabels(correct, oya, tsumo, total){
+function nearLabels(correct, oya, tsumo, total, fus = Q_FU){
   const pool = new Map();
-  for(let han = 1; han <= 13; han++) for(const fu of Q_FU){
+  for(let han = 1; han <= 13; han++) for(const fu of fus){
     const p = payment(han, fu, oya, tsumo);
     if(p.label !== correct && !pool.has(p.label)) pool.set(p.label, p.total);
   }
@@ -453,8 +454,8 @@ function nearLabels(correct, oya, tsumo, total){
   const arr = [...pool.entries()].sort((a, b) => Math.abs(a[1] - total) - Math.abs(b[1] - total));
   return shuffle(arr.slice(0, 6)).slice(0, 3).map(e => e[0]);
 }
-function pointChoices(pay, oya, tsumo){
-  return shuffle([pay.label, ...nearLabels(pay.label, oya, tsumo, pay.total)]);
+function pointChoices(pay, oya, tsumo, fus){
+  return shuffle([pay.label, ...nearLabels(pay.label, oya, tsumo, pay.total, fus)]);
 }
 function genQuick(){
   const oya = Math.random() < 0.35, tsumo = Math.random() < 0.5;
@@ -463,14 +464,14 @@ function genQuick(){
   else {
     for(;;){
       han = pickW([1,2,3,4], [28,32,26,14]);
-      fu = pickW(Q_FU, [10,6,38,32,14]);
+      fu = pickW(QUICK_FU, [10,6,34,30,12,5,3]);
       if(fu === 20 && (!tsumo || han < 2)) continue;
       if(fu === 25 && (tsumo ? han < 3 : han < 2)) continue;
       break;
     }
   }
   const pay = payment(han, fu, oya, tsumo);
-  return {kind:'quick', han, fu, oya, tsumo, pay, choices: pointChoices(pay, oya, tsumo), correct: pay.label};
+  return {kind:'quick', han, fu, oya, tsumo, pay, choices: pointChoices(pay, oya, tsumo, QUICK_FU), correct: pay.label};
 }
 function genFu(){
   const h = genHand(), fu = h.res.fu;
