@@ -1,0 +1,29 @@
+{
+  "rules": {
+    "rooms": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && $code.matches(/^[0-9]{4}$/)"
+      }
+    },
+    "rankings": {
+      ".read": true,
+      "ta": {
+        "$mode": {
+          ".indexOn": ["time"],
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.child('time').isNumber() && newData.child('time').val() >= 3000 && newData.child('name').isString() && newData.child('name').val().length <= 12"
+          }
+        }
+      },
+      "correct": {
+        ".indexOn": ["count"],
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.child('count').isNumber() && newData.child('name').isString() && newData.child('name').val().length <= 12"
+        }
+      }
+    }
+  }
+}
